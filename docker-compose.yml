@@ -1,0 +1,66 @@
+# version: '3.8'
+
+services:
+  zhenxun_bot:
+    # build: .
+    image: zhenxun_bot:latest
+    container_name: zhenxun_bot
+    restart: unless-stopped
+    ports:
+      - "16571:8080"
+    environment:
+      # 超级用户配置
+      - SUPERUSERS=["792408751"]
+      # 数据库配置
+      - DB_URL=sqlite:data/zhenxun.db
+      # 服务配置
+      - HOST=0.0.0.0
+      - PORT=8080
+    volumes:
+      # 数据持久化
+      - ./data:/app/zhenxun_bot/data
+      - ./resources:/app/zhenxun_bot/resources
+      - ./log:/app/zhenxun_bot/log
+    networks:
+      - zhenxun_network
+
+# MySQL 数据库示例（可选）
+# mysql:
+#   image: mysql:8.0
+#   container_name: zhenxun_mysql
+#   restart: unless-stopped
+#   environment:
+#     MYSQL_ROOT_PASSWORD: rootpassword
+#     MYSQL_DATABASE: zhenxun
+#     MYSQL_USER: zhenxun
+#     MYSQL_PASSWORD: zhenxun_password
+#   volumes:
+#     - mysql_data:/var/lib/mysql
+#   networks:
+#     - zhenxun_network
+#   ports:
+#     - "3306:3306"
+
+# PostgreSQL 数据库示例（可选）
+# postgres:
+#   image: postgres:15
+#   container_name: zhenxun_postgres
+#   restart: unless-stopped
+#   environment:
+#     POSTGRES_DB: zhenxun
+#     POSTGRES_USER: zhenxun
+#     POSTGRES_PASSWORD: zhenxun_password
+#   volumes:
+#     - postgres_data:/var/lib/postgresql/data
+#   networks:
+#     - zhenxun_network
+#   ports:
+#     - "5432:5432"
+
+networks:
+  zhenxun_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  postgres_data: 
