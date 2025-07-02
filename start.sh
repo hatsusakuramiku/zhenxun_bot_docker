@@ -15,6 +15,9 @@ DB_URL=${DB_URL:-$DEFAULT_DB_URL}
 HOST=${HOST:-$DEFAULT_HOST}
 PORT=${PORT:-$DEFAULT_PORT}
 
+# 确保数据目录存在
+mkdir -p ./data/db
+
 # 处理 PLATFORM_SUPERUSERS，确保 qq 平台与 SUPERUSERS 保持一致
 if [ -n "$SUPERUSERS" ]; then
     # 提取 SUPERUSERS 中的 QQ 号

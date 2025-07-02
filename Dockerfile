@@ -44,9 +44,6 @@ ENV TZ=Asia/Shanghai PYTHONUNBUFFERED=1 \
     HOST="0.0.0.0" \
     PORT="8080" \
     PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
-COPY ./start.sh /start.sh
-RUN chmod +x /start.sh
-
 EXPOSE 8080
 
 RUN apt update && \
@@ -60,7 +57,10 @@ RUN apt update && \
 COPY --from=build-stage /wheel /wheel
 COPY . .
 
-RUN mkdir -p ./data/db
+# 确保 start.sh 有执行权限并转换行结束符
+RUN ls -la /app/zhenxun_bot/ && \
+    sed -i 's/\r$//' /app/zhenxun_bot/start.sh && \
+    chmod +x /app/zhenxun_bot/start.sh
 
 RUN pip install --no-cache-dir --no-index --find-links=/wheel -r /wheel/requirements.txt && rm -rf /wheel
 
@@ -71,4 +71,4 @@ COPY --from=metadata-stage /tmp/VERSION /app/VERSION
 
 VOLUME ["/app/zhenxun_bot/data", "/app/zhenxun_bot/resources", "/app/zhenxun_bot/log"]
 
-CMD ["/start.sh"]
+CMD ["bash", "/app/zhenxun_bot/start.sh"]
