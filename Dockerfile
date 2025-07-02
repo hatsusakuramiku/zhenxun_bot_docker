@@ -38,14 +38,12 @@ FROM python:3.11-slim-bookworm
 
 WORKDIR /app/zhenxun_bot
 
-RUN mkdir -p /app/zhenxun_bot/data/db
-
 ENV TZ=Asia/Shanghai PYTHONUNBUFFERED=1 \
-    SUPERUSERS='["792408751"]' \
+    SUPERUSERS='["123456"]' \
     DB_URL="sqlite:data/db/zhenxun.db" \
     HOST="0.0.0.0" \
     PORT="8080" \
-    PLATFORM_SUPERUSERS='{"qq": ["792408751"], "dodo": [""]}'
+    PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
 COPY ./start.sh /start.sh
 RUN chmod +x /start.sh
 
@@ -61,6 +59,8 @@ RUN apt update && \
 # 复制依赖项和应用代码
 COPY --from=build-stage /wheel /wheel
 COPY . .
+
+RUN mkdir -p ./data/db
 
 RUN pip install --no-cache-dir --no-index --find-links=/wheel -r /wheel/requirements.txt && rm -rf /wheel
 

@@ -61,7 +61,7 @@ if "%choice%"=="1" (
     if not "%superusers%"=="" (
         set superusers_json=["%superusers:,=","%"]
     ) else (
-        set superusers_json=["792408751"]
+        set superusers_json=["123456"]
     )
     
     echo 🐳 启动容器...

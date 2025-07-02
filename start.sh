@@ -3,11 +3,11 @@
 # 真寻机器人 Docker 启动脚本
 
 # 设置默认值
-DEFAULT_SUPERUSERS='["792408751"]'
+DEFAULT_SUPERUSERS='["123456"]'
 DEFAULT_DB_URL="sqlite:data/db/zhenxun.db"
 DEFAULT_HOST="0.0.0.0"
 DEFAULT_PORT="8080"
-DEFAULT_PLATFORM_SUPERUSERS='{"qq": ["792408751"], "dodo": [""]}'
+DEFAULT_PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
 
 # 从环境变量获取配置，如果没有设置则使用默认值
 SUPERUSERS=${SUPERUSERS:-$DEFAULT_SUPERUSERS}
@@ -61,9 +61,12 @@ PLATFORM_SUPERUSERS = '$PLATFORM_SUPERUSERS'
 DRIVER=~fastapi+~httpx+~websockets
 
 # LOG_LEVEL=DEBUG
+
 # 服务器和端口
 HOST = $HOST
 PORT = $PORT
+
+# AccessToken = "set AccessToken here"
 
 # kook adapter toekn
 # kaiheila_bots =[{"token": ""}]

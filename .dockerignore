@@ -14,7 +14,7 @@ tests/
 .pre-commit-config.yaml
 .prettier*
 .conda
-# .env.dev  # 注释掉，因为启动脚本需要生成这个文件
+.env.dev
 docker-compose.yml
 Dockerfile
 LICENSE

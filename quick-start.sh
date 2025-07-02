@@ -59,7 +59,7 @@ case $choice in
         if [ -n "$superusers" ]; then
             superusers_json='['$(echo $superusers | sed 's/,/","/g' | sed 's/^/"/;s/$/"/')']'
         else
-            superusers_json='["792408751"]'
+            superusers_json='["123456"]'
         fi
         
         echo "🐳 启动容器..."
