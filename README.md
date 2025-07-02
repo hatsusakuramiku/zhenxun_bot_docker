@@ -2,7 +2,7 @@
 
 ## 说明
 
-这是基于[zhenxun_bot](https://github.com/zhenxun-org/zhenxun_bot.git)仓库提供的`Dockerfile`进行修改的 Docker 镜像。提供了预构建的镜像[hsmk/zhenxun_bot_docker(Linux amd64)](https://hub.docker.com/repository/docker/hsmk/zhenxun_bot_docker)。
+这是基于[zhenxun_bot](https://github.com/zhenxun-org/zhenxun_bot.git)仓库提供的`Dockerfile`进行修改的 Docker 镜像的配置文件的仓库。提供了预构建的镜像[hsmk/zhenxun_bot_docker(Linux amd64)](https://hub.docker.com/repository/docker/hsmk/zhenxun_bot_docker)。
 
 ## 🎯 实现的功能
 
@@ -28,33 +28,13 @@
 - `docker-compose.yml` - 基础配置（SQLite）
 - `docker-compose-mysql.yml` - MySQL 数据库配置
 - `docker-compose-postgres.yml` - PostgreSQL 数据库配置
+- `Dockerfile` - 构建镜像的 Dockerfile
+- `start.sh` - 启动脚本
 
-### 快速启动脚本
+### 一键启动脚本
 
 - `quick-start.sh` - Linux/macOS 快速启动脚本
 - `quick-start.bat` - Windows 快速启动脚本
-
-## 🔧 修改的文件
-
-### Dockerfile
-
-```dockerfile
-# 添加调试工具
-RUN apt install -y --no-install-recommends curl fontconfig fonts-noto-color-emoji bash vim nano procps
-
-# 设置默认环境变量
-ENV TZ=Asia/Shanghai PYTHONUNBUFFERED=1 \
-    SUPERUSERS='["123456"]' \
-    DB_URL="sqlite:data/db/zhenxun.db" \
-    HOST="0.0.0.0" \
-    PORT="8080" \
-    PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
-
-# 使用启动脚本
-COPY ./start.sh /start.sh
-RUN chmod +x /start.sh
-CMD ["/start.sh"]
-```
 
 ## 🚀 使用方法
 
@@ -145,7 +125,7 @@ cd zhenxun_bot_docker
    image: hsmk/zhenxun_bot_docker:latest
    ```
 
-2. 修改端口，比如你想时`bot`在主机的`7795`端口
+2. 修改端口，比如你想使`bot`在主机的`7795`端口
 
    ```yml
    ports:
@@ -235,7 +215,9 @@ docker logs -f zhenxun_bot  # 实时日志
 
 ## 🌐 Web UI 访问
 
-容器启动后访问：`http://localhost:8080`
+启动容器后在宿主机挂载的`~/data`目录下的`config.yaml`文件中设`web-ui`的用户名和密码，然后重启容器。
+容器启动后访问：`http://localhost:bot的端口`。
+bot 的`web-ui`现在功能已相当完善了，可以方便地进行插件的安装、数据库的管理、插件的配置等操作。
 
 ## ⚠️ 注意事项
 
