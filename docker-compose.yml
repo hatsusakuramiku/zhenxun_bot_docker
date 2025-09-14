@@ -21,6 +21,7 @@ services:
       - ./data:/app/zhenxun_bot/data
       - ./resources:/app/zhenxun_bot/resources
       - ./log:/app/zhenxun_bot/log
+      - ./plugins:/app/zhenxun_bot/zhenxun/plugins
     networks:
       - zhenxun_network
 
