@@ -150,6 +150,7 @@ cd zhenxun_bot_docker
      - ./data:/app/zhenxun_bot/data # bot成功启动一次后会在data目录下生成config.yaml文件，里面是bot的插件的配置信息
      - ./resources:/app/zhenxun_bot/resources # bot的基础资源文件
      - ./log:/app/zhenxun_bot/log # 运行日志
+     - ./plugins:/app/zhenxun_bot/plugins # 插件目录
    ```
 
 #### 3. 运行容器

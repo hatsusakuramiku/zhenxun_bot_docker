@@ -1,0 +1,3 @@
+[submodule "zhenxun_bot"]
+	path = zhenxun_bot
+	url = https://github.com/zhenxun-org/zhenxun_bot.git
