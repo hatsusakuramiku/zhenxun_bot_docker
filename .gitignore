@@ -1,2 +1,3 @@
+# Test data and local configurations
 test/
-zhenxun_bot/
+.env
