@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   zhenxun_bot:
-    # build: ./zhenxun_bot/Dockerfile
+    build: ./zhenxun_bot
     # image: hsmk/zhenxun_bot_docker:latest
     container_name: zhenxun_bot
     restart: unless-stopped
