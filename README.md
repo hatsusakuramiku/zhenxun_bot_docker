@@ -148,7 +148,86 @@
 
 ### 环境变量
 
+<<<<<<< HEAD
 你可以在 `docker-compose.yml` 文件中修改以下环境变量：
+=======
+   ```yml
+   volumes:
+     # 数据持久化
+     - ./data:/app/zhenxun_bot/data # bot成功启动一次后会在data目录下生成config.yaml文件，里面是bot的插件的配置信息
+     - ./resources:/app/zhenxun_bot/resources # bot的基础资源文件
+     - ./log:/app/zhenxun_bot/log # 运行日志
+   ```
+
+#### 4. 构建镜像并运行容器
+
+```bash
+# 构建镜像并运行容器
+docker-commpose -f docker-compose.yml up -d
+# 或者
+# docker commpose -f docker-compose.yml up -d
+```
+
+### 二、使用预构建镜像
+
+#### 1. 拉取仓库
+
+```bash
+git clone https://github.com/hatsusakuramiku/zhenxun_bot_docker.git
+
+# 进入项目目录
+cd zhenxun_bot_docker
+```
+
+#### 2. 修改配置文件
+
+选择你要使用的`docker-compose`配置文件，这里以`docker-compose.yml`为例。
+
+1. 修改镜像。
+
+   ```yml
+   image: hsmk/zhenxun_bot_docker:latest
+   ```
+
+2. 修改端口，比如你想使`bot`在主机的`7795`端口
+
+   ```yml
+   ports:
+     - "7795:8080"
+   ```
+
+3. 修改环境变量，将`SUPERUSERS`设置为你的 QQ 号, `DB_URL`设置为你的数据库连接字符串（如果想使用`sqlite`可以不修改）。
+
+   ```yml
+   environment:
+     # 超级用户配置
+     - SUPERUSERS=["你的QQ号"]
+     # 数据库配置
+     - DB_URL=你的数据库连接字符串
+   ```
+
+4. 修改持久化数据路径，将镜像中的`/app/zhenxun_bot/data, /app/zhenxun_bot/resources, /app/zhenxun_bot/log`路径映射到宿主机的指定路径（可以不修改）。
+
+   ```yml
+   volumes:
+     # 数据持久化
+     - ./data:/app/zhenxun_bot/data # bot成功启动一次后会在data目录下生成config.yaml文件，里面是bot的插件的配置信息
+     - ./resources:/app/zhenxun_bot/resources # bot的基础资源文件
+     - ./log:/app/zhenxun_bot/log # 运行日志
+     - ./plugins:/app/zhenxun_bot/plugins # 插件目录
+   ```
+
+#### 3. 运行容器
+
+```bash
+# 构建镜像并运行容器
+docker-commpose -f docker-compose.yml up -d
+# 或者
+# docker commpose -f docker-compose.yml up -d
+```
+
+## 🔍 环境变量说明
+>>>>>>> 4418be6d3f023b9e7399551cee52b0ec7b42852b
 
 | 变量名       | 默认值                      | 说明                      |
 | ------------ | --------------------------- | ------------------------- |
