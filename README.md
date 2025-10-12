@@ -156,6 +156,7 @@
      - ./data:/app/zhenxun_bot/data # bot成功启动一次后会在data目录下生成config.yaml文件，里面是bot的插件的配置信息
      - ./resources:/app/zhenxun_bot/resources # bot的基础资源文件
      - ./log:/app/zhenxun_bot/log # 运行日志
+     - ./plugins:/app/zhenxun_bot/zhenxun/plugins # bot的插件，所有安装的非基础插件都在这里
    ```
 
 #### 4. 构建镜像并运行容器
@@ -205,7 +206,7 @@ cd zhenxun_bot_docker
      - DB_URL=你的数据库连接字符串
    ```
 
-4. 修改持久化数据路径，将镜像中的`/app/zhenxun_bot/data, /app/zhenxun_bot/resources, /app/zhenxun_bot/log`路径映射到宿主机的指定路径（可以不修改）。
+4. 修改持久化数据路径，将镜像中的`/app/zhenxun_bot/data, /app/zhenxun_bot/resources, /app/zhenxun_bot/log, /app/zhenxun_bot/plugins`路径映射到宿主机的指定路径（可以不修改）。
 
    ```yml
    volumes:
@@ -269,7 +270,7 @@ docker-commpose -f docker-compose.yml up -d
   git submodule update --remote --merge
   ```
 
-- **注意：更新后需要重新安装插件依赖，否则可能无法正常使用插件**：
+<!-- - **注意：更新后需要重新安装插件依赖，否则可能无法正常使用插件**：
 
   ```bash
   # 进入容器
@@ -280,4 +281,4 @@ docker-commpose -f docker-compose.yml up -d
   exit
   # 重新启动服务
   docker restart zhenxun_bot
-  ```
+  ``` -->
