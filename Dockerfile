@@ -44,6 +44,7 @@ ENV TZ=Asia/Shanghai PYTHONUNBUFFERED=1 \
     HOST="0.0.0.0" \
     PORT="8080" \
     PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
+
 EXPOSE 8080
 
 RUN apt update && \
@@ -72,8 +73,8 @@ HOST=${HOST:-$DEFAULT_HOST}
 PORT=${PORT:-$DEFAULT_PORT}
 mkdir -p ./data/db
 if [ -n "$SUPERUSERS" ]; then
-    QQ_USERS=$(echo $SUPERUSERS | sed 's/\[//;s/\]//;s/"//g' | tr ',' ' ')
-    PLATFORM_SUPERUSERS='{"qq": ['$(echo $QQ_USERS | sed 's/ /","/g' | sed 's/^/"/;s/$/"/')'], "dodo": [""]}'
+    QQ_USERS=$(echo $SUPERUSERS | sed 's/\\[//;s/\\]//;s/\"//g' | tr ',' ' ')
+    PLATFORM_SUPERUSERS='{"qq": ['$(echo $QQ_USERS | sed 's/ /\",\"/g' | sed 's/^/\"/;s/$/\"/')'], "dodo": [""]}'
 else
     PLATFORM_SUPERUSERS=${PLATFORM_SUPERUSERS:-$DEFAULT_PLATFORM_SUPERUSERS}
 fi
@@ -87,7 +88,7 @@ ALCONNA_USE_COMMAND_START=True
 IMAGE_TO_BYTES = True
 SELF_NICKNAME="小真寻"
 QBOT_ID_DATA = '{
-    
+
 }'
 DB_URL = "$DB_URL"
 PLATFORM_SUPERUSERS = '$PLATFORM_SUPERUSERS'
@@ -101,13 +102,61 @@ echo "DB_URL: $DB_URL"
 echo "HOST: $HOST"
 echo "PORT: $PORT"
 echo "PLATFORM_SUPERUSERS: $PLATFORM_SUPERUSERS"
+
+# 安装插件依赖（只在容器运行时安装插件依赖，避免重新安装基础依赖）
+echo "正在安装插件依赖..."
+
+# 安装内置插件依赖
+for plugin_dir in zhenxun/builtin_plugins/*/; do
+    if [ -f "$plugin_dir/requirements.txt" ]; then
+        echo "正在处理内置插件: $(basename $plugin_dir)"
+        pip install --no-cache-dir -r "$plugin_dir/requirements.txt"
+    elif [ -f "$plugin_dir/pyproject.toml" ]; then
+        echo "正在处理内置插件: $(basename $plugin_dir) (使用poetry)"
+        # 尝试使用poetry导出依赖
+        cd "$plugin_dir"
+        if command -v poetry >/dev/null 2>&1; then
+            # 使用poetry导出依赖
+            poetry export -f requirements.txt --output /tmp/plugin_requirements_$(basename $plugin_dir).txt --without-hashes --without-urls 2>/dev/null || true
+            cd /app/zhenxun_bot
+            if [ -f "/tmp/plugin_requirements_$(basename $plugin_dir).txt" ]; then
+                pip install --no-cache-dir -r /tmp/plugin_requirements_$(basename $plugin_dir).txt
+                rm /tmp/plugin_requirements_$(basename $plugin_dir).txt
+            fi
+        fi
+    fi
+done
+
+# 安装插件仓库中的插件依赖
+if [ -d "zhenxun/plugins" ]; then
+    for plugin_dir in zhenxun/plugins/*/; do
+        if [ -f "$plugin_dir/requirements.txt" ]; then
+            echo "正在处理插件仓库插件: $(basename $plugin_dir)"
+            pip install --no-cache-dir -r "$plugin_dir/requirements.txt"
+        elif [ -f "$plugin_dir/pyproject.toml" ]; then
+            echo "正在处理插件仓库插件: $(basename $plugin_dir) (使用poetry)"
+            # 尝试使用poetry导出依赖
+            cd "$plugin_dir"
+            if command -v poetry >/dev/null 2>&1; then
+                # 使用poetry导出依赖
+                poetry export -f requirements.txt --output /tmp/plugin_requirements_$(basename $plugin_dir).txt --without-hashes --without-urls 2>/dev/null || true
+                cd /app/zhenxun_bot
+                if [ -f "/tmp/plugin_requirements_$(basename $plugin_dir).txt" ]; then
+                    pip install --no-cache-dir -r /tmp/plugin_requirements_$(basename $plugin_dir).txt
+                    rm /tmp/plugin_requirements_$(basename $plugin_dir).txt
+                fi
+            fi
+        fi
+    done
+fi
+
 exec python bot.py
 EOF
 RUN chmod +x /app/zhenxun_bot/start.sh
 
 # 确保 start.sh 有执行权限并转换行结束符
 RUN ls -la /app/zhenxun_bot/ && \
-    sed -i 's/\r$//' /app/zhenxun_bot/start.sh && \
+    sed -i 's/\\r$//' /app/zhenxun_bot/start.sh && \
     chmod +x /app/zhenxun_bot/start.sh
 
 RUN pip install asyncpg packaging poetry
