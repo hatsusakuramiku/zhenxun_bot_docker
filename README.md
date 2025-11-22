@@ -269,16 +269,3 @@ docker-commpose -f docker-compose.yml up -d
   ```bash
   git submodule update --remote --merge
   ```
-
-**注意：更新后需要重新安装插件依赖，否则可能无法正常使用插件**：
-
-  ```bash
-  # 进入容器
-  docker exec -it zhenxun_bot bash
-  # 安装插件依赖 
-  pip install [插件对应的依赖包名]
-  # 退出容器
-  exit
-  # 重新启动服务
-  docker restart zhenxun_bot
-  ``` 
