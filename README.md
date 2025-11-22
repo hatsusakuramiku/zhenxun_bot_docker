@@ -270,7 +270,7 @@ docker-commpose -f docker-compose.yml up -d
   git submodule update --remote --merge
   ```
 
-<!-- - **注意：更新后需要重新安装插件依赖，否则可能无法正常使用插件**：
+**注意：更新后需要重新安装插件依赖，否则可能无法正常使用插件**：
 
   ```bash
   # 进入容器
@@ -281,4 +281,4 @@ docker-commpose -f docker-compose.yml up -d
   exit
   # 重新启动服务
   docker restart zhenxun_bot
-  ``` -->
+  ``` 
