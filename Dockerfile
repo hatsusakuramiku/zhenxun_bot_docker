@@ -1,63 +1,43 @@
 FROM python:3.11-bookworm AS requirements-stage
-
 WORKDIR /tmp
-
 ENV POETRY_HOME="/opt/poetry" PATH="${PATH}:/opt/poetry/bin"
-
 RUN curl -sSL https://install.python-poetry.org | python - -y && \
-  poetry self add poetry-plugin-export
-
+    poetry self add poetry-plugin-export
 COPY ./pyproject.toml ./poetry.lock* /tmp/
-
 RUN poetry export \
-      -f requirements.txt \
-      --output requirements.txt \
-      --without-hashes \
-      --without-urls
-
+    -f requirements.txt \
+    --output requirements.txt \
+    --without-hashes \
+    --without-urls
 FROM python:3.11-bookworm AS build-stage
-
 WORKDIR /wheel
-
 COPY --from=requirements-stage /tmp/requirements.txt /wheel/requirements.txt
-
 # RUN python3 -m pip config set global.index-url https://mirrors.aliyun.com/pypi/simple
-
 RUN pip wheel --wheel-dir=/wheel --no-cache-dir --requirement /wheel/requirements.txt
-
 FROM python:3.11-bookworm AS metadata-stage
-
 WORKDIR /tmp
-
 RUN --mount=type=bind,source=./.git/,target=/tmp/.git/ \
-  git describe --tags --exact-match > /tmp/VERSION 2>/dev/null \
-  || git rev-parse --short HEAD > /tmp/VERSION \
-  && echo "Building version: $(cat /tmp/VERSION)"
-
+    git describe --tags --exact-match > /tmp/VERSION 2>/dev/null \
+    || git rev-parse --short HEAD > /tmp/VERSION \
+    && echo "Building version: $(cat /tmp/VERSION)"
 FROM python:3.11-slim-bookworm
-
 WORKDIR /app/zhenxun_bot
-
 ENV TZ=Asia/Shanghai PYTHONUNBUFFERED=1 \
     SUPERUSERS='["123456"]' \
     DB_URL="sqlite:data/db/zhenxun.db" \
     HOST="0.0.0.0" \
     PORT="8080" \
     PLATFORM_SUPERUSERS='{"qq": ["123456"], "dodo": [""]}'
-
 EXPOSE 8080
-
 RUN apt update && \
     apt install -y --no-install-recommends curl fontconfig fonts-noto-color-emoji bash vim nano procps git \
     && apt clean \
     && fc-cache -fv \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
-
 # 复制依赖项和应用代码
 COPY --from=build-stage /wheel /wheel
 COPY . .
-
 # 在 /app/zhenxun_bot/ 下直接创建 start.sh
 RUN cat <<'EOF' > /app/zhenxun_bot/start.sh
 #!/bin/bash
@@ -88,7 +68,6 @@ ALCONNA_USE_COMMAND_START=True
 IMAGE_TO_BYTES = True
 SELF_NICKNAME="小真寻"
 QBOT_ID_DATA = '{
-
 }'
 DB_URL = "$DB_URL"
 PLATFORM_SUPERUSERS = '$PLATFORM_SUPERUSERS'
@@ -102,72 +81,74 @@ echo "DB_URL: $DB_URL"
 echo "HOST: $HOST"
 echo "PORT: $PORT"
 echo "PLATFORM_SUPERUSERS: $PLATFORM_SUPERUSERS"
-
 # 安装插件依赖（只在容器运行时安装插件依赖，避免重新安装基础依赖）
 echo "正在安装插件依赖..."
 
-# 安装内置插件依赖
-for plugin_dir in zhenxun/builtin_plugins/*/; do
+# --- 增强的插件依赖处理逻辑 ---
+
+# 函数：处理单个插件目录
+handle_plugin_deps() {
+    local plugin_dir=$1
+    local plugin_name=$(basename "$plugin_dir")
+    
+    echo "--- 检查插件: $plugin_name ---"
+
     if [ -f "$plugin_dir/requirements.txt" ]; then
-        echo "正在处理内置插件: $(basename $plugin_dir)"
+        echo "正在处理内置插件: $plugin_name (requirements.txt)"
         pip install --no-cache-dir -r "$plugin_dir/requirements.txt"
     elif [ -f "$plugin_dir/pyproject.toml" ]; then
-        echo "正在处理内置插件: $(basename $plugin_dir) (使用poetry)"
-        # 尝试使用poetry导出依赖
+        echo "正在处理插件: $plugin_name (pyproject.toml)"
         cd "$plugin_dir"
         if command -v poetry >/dev/null 2>&1; then
-            # 使用poetry导出依赖
-            poetry export -f requirements.txt --output /tmp/plugin_requirements_$(basename $plugin_dir).txt --without-hashes --without-urls 2>/dev/null || true
-            cd /app/zhenxun_bot
-            if [ -f "/tmp/plugin_requirements_$(basename $plugin_dir).txt" ]; then
-                pip install --no-cache-dir -r /tmp/plugin_requirements_$(basename $plugin_dir).txt
-                rm /tmp/plugin_requirements_$(basename $plugin_dir).txt
-            fi
-        fi
-    fi
-done
-
-# 安装插件仓库中的插件依赖
-if [ -d "zhenxun/plugins" ]; then
-    for plugin_dir in zhenxun/plugins/*/; do
-        if [ -f "$plugin_dir/requirements.txt" ]; then
-            echo "正在处理插件仓库插件: $(basename $plugin_dir)"
-            pip install --no-cache-dir -r "$plugin_dir/requirements.txt"
-        elif [ -f "$plugin_dir/pyproject.toml" ]; then
-            echo "正在处理插件仓库插件: $(basename $plugin_dir) (使用poetry)"
-            # 尝试使用poetry导出依赖
-            cd "$plugin_dir"
-            if command -v poetry >/dev/null 2>&1; then
-                # 使用poetry导出依赖
-                poetry export -f requirements.txt --output /tmp/plugin_requirements_$(basename $plugin_dir).txt --without-hashes --without-urls 2>/dev/null || true
+            echo "尝试使用 poetry export..."
+            # 尝试导出依赖
+            if poetry export -f requirements.txt --output /tmp/plugin_requirements_${plugin_name}.txt --without-hashes --without-urls 2>/dev/null; then
                 cd /app/zhenxun_bot
-                if [ -f "/tmp/plugin_requirements_$(basename $plugin_dir).txt" ]; then
-                    pip install --no-cache-dir -r /tmp/plugin_requirements_$(basename $plugin_dir).txt
-                    rm /tmp/plugin_requirements_$(basename $plugin_dir).txt
+                if [ -f "/tmp/plugin_requirements_${plugin_name}.txt" ]; then
+                    echo "成功导出依赖，正在 pip 安装..."
+                    pip install --no-cache-dir -r "/tmp/plugin_requirements_${plugin_name}.txt"
+                    rm "/tmp/plugin_requirements_${plugin_name}.txt"
+                fi
+            else
+                # 如果 export 失败（通常是没有 lock 文件），尝试直接安装
+                echo "poetry export 失败，尝试运行 poetry install..."
+                if poetry install --no-dev --only main 2>/dev/null; then
+                    echo "poetry install 成功。"
+                else
+                    echo "警告：$plugin_name 的 poetry 安装失败，请检查依赖配置。"
                 fi
             fi
         fi
+        cd /app/zhenxun_bot # 确保回到主目录
+    fi
+}
+
+# 处理内置插件
+if [ -d "zhenxun/builtin_plugins" ]; then
+    for plugin_dir in zhenxun/builtin_plugins/*/; do
+        handle_plugin_deps "$plugin_dir"
     done
 fi
+
+# 处理插件仓库中的插件
+if [ -d "zhenxun/plugins" ]; then
+    for plugin_dir in zhenxun/plugins/*/; do
+        handle_plugin_deps "$plugin_dir"
+    done
+fi
+
 
 exec python bot.py
 EOF
 RUN chmod +x /app/zhenxun_bot/start.sh
-
 # 确保 start.sh 有执行权限并转换行结束符
 RUN ls -la /app/zhenxun_bot/ && \
     sed -i 's/\\r$//' /app/zhenxun_bot/start.sh && \
     chmod +x /app/zhenxun_bot/start.sh
-
 RUN pip install asyncpg packaging poetry
-
 RUN pip install --no-cache-dir --no-index --find-links=/wheel -r /wheel/requirements.txt && rm -rf /wheel
-
 RUN playwright install --with-deps chromium \
-  && rm -rf /var/lib/apt/lists/* /tmp/*
-
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 COPY --from=metadata-stage /tmp/VERSION /app/VERSION
-
 VOLUME ["/app/zhenxun_bot/data", "/app/zhenxun_bot/resources", "/app/zhenxun_bot/log", "/app/zhenxun_bot/zhenxun/plugins"]
-
 CMD ["bash", "/app/zhenxun_bot/start.sh"]
